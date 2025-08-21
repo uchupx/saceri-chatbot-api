@@ -1,0 +1,6 @@
+*.dont
+vendor/
+pkg/grpc/proto/gen/*
+.idea/
+
+.env
