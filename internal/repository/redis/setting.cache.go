@@ -21,7 +21,7 @@ func (repo *SettingCacheRepo) GetSettingByKey(ctx context.Context, key models.Se
 	}
 
 	if setting == "" {
-		return repo.fallback.GetByKey(ctx, key)
+		return repo.fallback.GetByKey(key)
 	}
 
 	return &data, nil
