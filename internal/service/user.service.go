@@ -15,7 +15,7 @@ type UserService struct {
 }
 
 func (s *UserService) GetUsers(ctx context.Context) ([]models.UserModel, *apierror.APIerror) {
-	users, err := s.UserRepo.GetAllUsers(100, 0)
+	users, err := s.UserRepo.GetAllUsers(ctx, 100, 0)
 	if err != nil {
 		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
 	}
@@ -30,7 +30,7 @@ func (s *UserService) Register(ctx context.Context, body _type.RegisterRequest) 
 		Name:     body.Name,
 	}
 
-	resp, err := s.UserRepo.CreateUser(user)
+	resp, err := s.UserRepo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}

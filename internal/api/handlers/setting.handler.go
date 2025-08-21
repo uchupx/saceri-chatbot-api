@@ -13,7 +13,7 @@ type SettingHandler struct {
 }
 
 func (h *SettingHandler) GetSetting(c echo.Context) error {
-	settings, err := h.SettingService.GetAll()
+	settings, err := h.SettingService.GetAll(c.Request().Context())
 	if err != nil {
 		return h.responseError(c, err)
 	}
@@ -28,7 +28,7 @@ func (h *SettingHandler) UpdateSetting(c echo.Context) error {
 		return h.responseError(c, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
 	}
 
-	setting, apierr := h.SettingService.Update(body.Key, body.Value)
+	setting, apierr := h.SettingService.Update(c.Request().Context(), body.Key, body.Value)
 	if apierr != nil {
 		return h.responseError(c, apierr)
 	}

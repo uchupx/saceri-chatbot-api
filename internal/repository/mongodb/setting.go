@@ -16,7 +16,7 @@ type SettingRepoMongodb struct {
 	collectionName string
 }
 
-func (r *SettingRepoMongodb) Create(data models.SettingModel) (*models.SettingModel, error) {
+func (r *SettingRepoMongodb) Create(ctx context.Context, data models.SettingModel) (*models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
 	// Set timestamps
@@ -29,7 +29,7 @@ func (r *SettingRepoMongodb) Create(data models.SettingModel) (*models.SettingMo
 		data.Id = bson.NewObjectID()
 	}
 
-	_, err := collection.InsertOne(context.Background(), data)
+	_, err := collection.InsertOne(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r *SettingRepoMongodb) Create(data models.SettingModel) (*models.SettingMo
 	return &data, nil
 }
 
-func (r *SettingRepoMongodb) Update(data models.SettingModel) (*models.SettingModel, error) {
+func (r *SettingRepoMongodb) Update(ctx context.Context, data models.SettingModel) (*models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
 	// Set update timestamp
@@ -58,7 +58,7 @@ func (r *SettingRepoMongodb) Update(data models.SettingModel) (*models.SettingMo
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var updatedData models.SettingModel
-	err := collection.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedData)
+	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedData)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -69,7 +69,7 @@ func (r *SettingRepoMongodb) Update(data models.SettingModel) (*models.SettingMo
 	return &updatedData, nil
 }
 
-func (r *SettingRepoMongodb) GetByKey(key models.SettingKey) (*models.SettingModel, error) {
+func (r *SettingRepoMongodb) GetByKey(ctx context.Context, key models.SettingKey) (*models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
 	filter := bson.M{
@@ -78,7 +78,7 @@ func (r *SettingRepoMongodb) GetByKey(key models.SettingKey) (*models.SettingMod
 	}
 
 	var data models.SettingModel
-	err := collection.FindOne(context.Background(), filter).Decode(&data)
+	err := collection.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -89,20 +89,20 @@ func (r *SettingRepoMongodb) GetByKey(key models.SettingKey) (*models.SettingMod
 	return &data, nil
 }
 
-func (r *SettingRepoMongodb) GetAllSettings() ([]models.SettingModel, error) {
+func (r *SettingRepoMongodb) GetAllSettings(ctx context.Context) ([]models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
 	filter := bson.M{"is_active": true}
 
 	var settings []models.SettingModel
-	cursor, err := collection.Find(context.Background(), filter)
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	defer cursor.Close(context.Background())
+	defer cursor.Close(ctx)
 
-	for cursor.Next(context.Background()) {
+	for cursor.Next(ctx) {
 		var setting models.SettingModel
 		err := cursor.Decode(&setting)
 		if err != nil {

@@ -20,7 +20,7 @@ const (
 	collectionName = "users"
 )
 
-func (r *UserRepoMongodb) GetUser(id string) (*models.UserModel, error) {
+func (r *UserRepoMongodb) GetUser(ctx context.Context, id string) (*models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -34,7 +34,7 @@ func (r *UserRepoMongodb) GetUser(id string) (*models.UserModel, error) {
 	}
 
 	var user models.UserModel
-	err = collection.FindOne(context.Background(), filter).Decode(&user)
+	err = collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // User not found
@@ -45,7 +45,7 @@ func (r *UserRepoMongodb) GetUser(id string) (*models.UserModel, error) {
 	return &user, nil
 }
 
-func (r *UserRepoMongodb) GetUserByUsername(username string) (*models.UserModel, error) {
+func (r *UserRepoMongodb) GetUserByUsername(ctx context.Context, username string) (*models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	filter := bson.M{
@@ -54,7 +54,7 @@ func (r *UserRepoMongodb) GetUserByUsername(username string) (*models.UserModel,
 	}
 
 	var user models.UserModel
-	err := collection.FindOne(context.Background(), filter).Decode(&user)
+	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // User not found
@@ -65,7 +65,7 @@ func (r *UserRepoMongodb) GetUserByUsername(username string) (*models.UserModel,
 	return &user, nil
 }
 
-func (r *UserRepoMongodb) CreateUser(user models.UserModel) (*models.UserModel, error) {
+func (r *UserRepoMongodb) CreateUser(ctx context.Context, user models.UserModel) (*models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	// Set timestamps
@@ -79,7 +79,7 @@ func (r *UserRepoMongodb) CreateUser(user models.UserModel) (*models.UserModel, 
 		user.Id = bson.NewObjectID()
 	}
 
-	_, err := collection.InsertOne(context.Background(), user)
+	_, err := collection.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (r *UserRepoMongodb) CreateUser(user models.UserModel) (*models.UserModel, 
 	return &user, nil
 }
 
-func (r *UserRepoMongodb) UpdateUser(user models.UserModel) (*models.UserModel, error) {
+func (r *UserRepoMongodb) UpdateUser(ctx context.Context, user models.UserModel) (*models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	// Set update timestamp
@@ -114,7 +114,7 @@ func (r *UserRepoMongodb) UpdateUser(user models.UserModel) (*models.UserModel, 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var updatedUser models.UserModel
-	err := collection.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&updatedUser)
+	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedUser)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // User not found
@@ -125,7 +125,7 @@ func (r *UserRepoMongodb) UpdateUser(user models.UserModel) (*models.UserModel, 
 	return &updatedUser, nil
 }
 
-func (r *UserRepoMongodb) DeleteUser(id string) error {
+func (r *UserRepoMongodb) DeleteUser(ctx context.Context, id string) error {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -146,7 +146,7 @@ func (r *UserRepoMongodb) DeleteUser(id string) error {
 		},
 	}
 
-	result, err := collection.UpdateOne(context.Background(), filter, update)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (r *UserRepoMongodb) DeleteUser(id string) error {
 	return nil
 }
 
-func (r *UserRepoMongodb) GetAllUsers(limit, offset int) ([]models.UserModel, error) {
+func (r *UserRepoMongodb) GetAllUsers(ctx context.Context, limit, offset int) ([]models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	filter := bson.M{"is_active": true}
@@ -172,14 +172,14 @@ func (r *UserRepoMongodb) GetAllUsers(limit, offset int) ([]models.UserModel, er
 	}
 	opts.SetSort(bson.M{"created_at": -1}) // Sort by newest first
 
-	cursor, err := collection.Find(context.Background(), filter, opts)
+	cursor, err := collection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.Background())
+	defer cursor.Close(ctx)
 
 	var users []models.UserModel
-	err = cursor.All(context.Background(), &users)
+	err = cursor.All(ctx, &users)
 	if err != nil {
 		return nil, err
 	}
@@ -187,12 +187,12 @@ func (r *UserRepoMongodb) GetAllUsers(limit, offset int) ([]models.UserModel, er
 	return users, nil
 }
 
-func (r *UserRepoMongodb) CountUsers() (int64, error) {
+func (r *UserRepoMongodb) CountUsers(ctx context.Context) (int64, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
 	filter := bson.M{"is_active": true}
 
-	count, err := collection.CountDocuments(context.Background(), filter)
+	count, err := collection.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, err
 	}
