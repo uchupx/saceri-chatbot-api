@@ -17,12 +17,16 @@ type AuthHandler struct {
 }
 
 func (h *AuthHandler) Register(c echo.Context) error {
+
+	ctx := h.log.CreateTrace(c.Request().Context())
 	body := _type.RegisterRequest{}
 
 	err := c.Bind(&body)
 	if err != nil {
-		return h.responseError(c, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
 	}
+
+	ctx = h.log.AttachBody(ctx, body)
 
 	conf := config.GetConfig()
 	payload := authservice.RegisterUserRequest{
@@ -31,29 +35,31 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		Secret:   conf.App.Secret,
 	}
 
-	respAuth, err := h.AuthClient.Register(c.Request().Context(), &payload)
+	respAuth, err := h.AuthClient.Register(ctx, &payload)
 	if err != nil {
-		return h.responseError(c, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
 	}
 
 	body.OauthID = respAuth.Id
 
-	user, err := h.UserService.Register(c.Request().Context(), body)
+	user, err := h.UserService.Register(ctx, body)
 	if err != nil {
-		return h.responseError(c, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
 	}
 
 	return h.responseSuccess(c, 200, user)
 }
 
 func (h *AuthHandler) Login(c echo.Context) error {
-
+	ctx := h.log.CreateTrace(c.Request().Context())
 	body := _type.LoginRequest{}
+
 	err := c.Bind(&body)
 	if err != nil {
-		return h.responseError(c, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
 	}
 
+	ctx = h.log.AttachBody(ctx, body)
 	conf := config.GetConfig()
 
 	payload := authservice.LoginRequest{
@@ -64,7 +70,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	respAuth, err := h.AuthClient.Login(c.Request().Context(), &payload)
 	if err != nil {
-		return h.responseError(c, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
 	}
 
 	return h.responseSuccess(c, 200, _type.LoginResponse{

@@ -9,6 +9,10 @@ func (e *APIerror) Error() string {
 	return e.err.Error()
 }
 
+func (e *APIerror) Unwrap() error {
+	return e.err
+}
+
 func (e *APIerror) Code() int {
 	return e.code
 }

@@ -15,9 +15,11 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 }
 
 func (h *UserHandler) GetUsers(c echo.Context) error {
-	users, err := h.UserService.GetUsers(c.Request().Context())
+	ctx := h.log.CreateTrace(c.Request().Context())
+
+	users, err := h.UserService.GetUsers(ctx)
 	if err != nil {
-		return h.responseError(c, err)
+		return h.responseError(c, ctx, err)
 	}
 	return h.responseSuccess(c, 200, users)
 }

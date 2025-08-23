@@ -6,6 +6,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/redis/go-redis/v9 v9.12.1
+	github.com/sirupsen/logrus v1.9.3
 	github.com/subosito/gotenv v1.6.0
 	go.mongodb.org/mongo-driver/v2 v2.2.2
 	google.golang.org/grpc v1.73.0

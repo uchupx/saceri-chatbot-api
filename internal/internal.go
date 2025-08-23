@@ -8,7 +8,9 @@ import (
 	"github.com/uchupx/saceri-chatbot-api/internal/database"
 	"github.com/uchupx/saceri-chatbot-api/internal/repository"
 	"github.com/uchupx/saceri-chatbot-api/internal/repository/mongodb"
+	"github.com/uchupx/saceri-chatbot-api/internal/repository/redis"
 	"github.com/uchupx/saceri-chatbot-api/internal/service"
+	"github.com/uchupx/saceri-chatbot-api/pkg/apilog"
 	"github.com/uchupx/saceri-chatbot-api/pkg/grpc/client"
 )
 
@@ -22,10 +24,16 @@ type Factory struct {
 
 	middleware *middlewares.Middleware
 
-	dbConn *database.MongoDB
+	dbConn  *database.MongoDB
+	dbRedis *database.Cache
 
 	userRepo    repository.UserRepoInterface
 	settingRepo repository.SettingRepoInterface
+
+	cacheRepo        *redis.CacheRepo
+	settingRepoCache repository.SettingRepoInterface
+
+	log *apilog.ApiLog
 
 	userService    *service.UserService
 	settingService *service.SettingService
@@ -50,7 +58,7 @@ func (f *Factory) Handler() *handlers.Handler {
 		return f.handler
 	}
 
-	f.handler = &handlers.Handler{}
+	f.handler = handlers.NewHandler(f.GetLog())
 
 	return f.handler
 }
@@ -179,4 +187,77 @@ func (f *Factory) GetSettingService() *service.SettingService {
 	f.settingService = settingService
 
 	return f.settingService
+}
+
+func (f *Factory) GetSettingCacheRepo() repository.SettingRepoInterface {
+	if f.settingRepoCache != nil {
+		return f.settingRepoCache
+	}
+
+	settingCacheRepo := redis.NewSettingCacheRepo(
+		f.GetCacheRepo(),
+		f.GetSettingRepo(),
+	)
+
+	f.settingRepoCache = settingCacheRepo
+
+	return f.settingRepoCache
+}
+
+func (f *Factory) GetCacheRepo() *redis.CacheRepo {
+	if f.cacheRepo != nil {
+		return f.cacheRepo
+	}
+
+	cacheRepo := redis.NewCacheRepo(
+		f.GetCache(),
+		f.GetLog(),
+	)
+
+	f.cacheRepo = cacheRepo
+
+	return f.cacheRepo
+}
+
+func (f *Factory) GetCache() *database.Cache {
+	if f.dbRedis != nil {
+		return f.dbRedis
+	}
+
+	conf := config.GetConfig()
+
+	cache, err := database.GetConnection(database.RedisConfig{
+		Host:         conf.Redis.Host,
+		Password:     conf.Redis.Password,
+		Database:     conf.Redis.Database,
+		PoolSize:     conf.Redis.PoolSize,
+		MinIdleConns: conf.Redis.MinIdleConns,
+		// IdleTimeout: conf.Redis.IdleTimeout,
+
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	f.dbRedis = cache
+
+	return f.dbRedis
+}
+
+func (f *Factory) GetLog() *apilog.ApiLog {
+	if f.log != nil {
+		return f.log
+	}
+
+	conf := config.GetConfig()
+
+	log := apilog.NewApiLog(apilog.Params{
+		ServiceName: conf.App.Name,
+		Level:       4,
+		Version:     conf.App.Version,
+	})
+
+	f.log = log
+
+	return f.log
 }

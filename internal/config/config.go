@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/subosito/gotenv"
+	"github.com/uchupx/saceri-chatbot-api/pkg/helper"
 )
 
 var configPath = []string{
@@ -19,15 +20,20 @@ type Config struct {
 		GRPCPort string
 		Log      string
 		Secret   string
+		Name     string
+		Version  string
 	}
 	Database struct {
 		URL string
 	}
 
 	Redis struct {
-		Host     string
-		Port     string
-		Password string
+		Host         string
+		Port         string
+		Password     string
+		Database     int
+		PoolSize     int
+		MinIdleConns int
 	}
 
 	RSA struct {
@@ -64,6 +70,9 @@ func new() *Config {
 	config.Redis.Host = os.Getenv("REDIS_HOST")
 	config.Redis.Port = os.Getenv("REDIS_PORT")
 	config.Redis.Password = os.Getenv("REDIS_PASSWORD")
+	config.Redis.Database = int(helper.StringToUint(os.Getenv("REDIS_DATABASE")))
+	config.Redis.PoolSize = 10
+	config.Redis.MinIdleConns = 5
 
 	config.RSA.Private = os.Getenv("RSA_PRIVATE_KEY")
 	config.RSA.Public = os.Getenv("RSA_PUBLIC_KEY")
@@ -73,6 +82,8 @@ func new() *Config {
 	// config.App.GRPCPort = os.Getenv("APP_GRPC_PORT")
 	config.App.Log = os.Getenv("APP_LOG")
 	config.App.Secret = os.Getenv("APP_SECRET")
+	config.App.Name = os.Getenv("APP_NAME")
+	config.App.Version = os.Getenv("APP_VERSION")
 
 	config.Service.AuthServiceUrl = os.Getenv("AUTH_SERVICE_URL")
 	return config

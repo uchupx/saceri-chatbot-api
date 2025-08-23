@@ -1,11 +1,21 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/labstack/echo/v4"
 	"github.com/uchupx/saceri-chatbot-api/pkg/apierror"
+	"github.com/uchupx/saceri-chatbot-api/pkg/apilog"
 )
 
 type Handler struct {
+	log *apilog.ApiLog
+}
+
+func NewHandler(log *apilog.ApiLog) *Handler {
+	return &Handler{
+		log: log,
+	}
 }
 
 type Response struct {
@@ -15,7 +25,12 @@ type Response struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-func (h Handler) responseError(c echo.Context, err *apierror.APIerror) error {
+func (h Handler) responseError(c echo.Context, ctx context.Context, err *apierror.APIerror) error {
+	h.log.Error(ctx, "Error occurred", err.Unwrap(), map[string]interface{}{
+		"code":    err.Code(),
+		"message": err.Error(),
+	})
+
 	response := Response{
 		Status:  err.Code(),
 		Message: err.Error(),
