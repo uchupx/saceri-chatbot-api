@@ -1,5 +1,7 @@
 package apierror
 
+import "fmt"
+
 type APIerror struct {
 	code int
 	err  error
@@ -23,3 +25,5 @@ func NewAPIError(code int, err error) *APIerror {
 		err:  err,
 	}
 }
+
+var ERR_NOT_FOUND error = fmt.Errorf("data is not found")

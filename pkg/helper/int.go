@@ -11,3 +11,11 @@ func StringToUint(s string) uint {
 	}
 	return uint(u)
 }
+
+func DefaultInt(v *int, def int) int {
+	if v == nil {
+		return def
+	}
+
+	return *v
+}

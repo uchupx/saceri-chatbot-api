@@ -14,8 +14,8 @@ type UserService struct {
 	UserRepo repository.UserRepoInterface
 }
 
-func (s *UserService) GetUsers(ctx context.Context) ([]models.UserModel, *apierror.APIerror) {
-	users, err := s.UserRepo.GetAllUsers(ctx, 100, 0)
+func (s *UserService) GetUsers(ctx context.Context, params _type.UserGetQuery) ([]models.UserModel, *apierror.APIerror) {
+	users, err := s.UserRepo.GetAllUsers(ctx, params.Keyword, params.Limit(), params.Offset())
 	if err != nil {
 		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
 	}
@@ -23,11 +23,37 @@ func (s *UserService) GetUsers(ctx context.Context) ([]models.UserModel, *apierr
 	return users, nil
 }
 
+func (s *UserService) GetUserByOauthID(ctx context.Context, id string) (*models.UserModel, *apierror.APIerror) {
+	user, err := s.UserRepo.GetUserByOauthID(ctx, id)
+	if err != nil {
+		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
+	}
+
+	if user == nil {
+		return nil, apierror.NewAPIError(echo.ErrNotFound.Code, nil)
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, id string) (*models.UserModel, *apierror.APIerror) {
+	user, err := s.UserRepo.GetUser(ctx, id)
+	if err != nil {
+		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
+	}
+
+	if user == nil {
+		return nil, apierror.NewAPIError(echo.ErrNotFound.Code, apierror.ERR_NOT_FOUND)
+	}
+
+	return user, nil
+}
+
 func (s *UserService) Register(ctx context.Context, body _type.RegisterRequest) (*models.UserModel, error) {
 	user := models.UserModel{
 		Username: body.Username,
-		Password: body.Password,
 		Name:     body.Name,
+		OauthID:  body.OauthID,
 	}
 
 	resp, err := s.UserRepo.CreateUser(ctx, user)
@@ -36,4 +62,22 @@ func (s *UserService) Register(ctx context.Context, body _type.RegisterRequest) 
 	}
 
 	return resp, nil
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, body _type.UserUpdateRequest) (*models.UserModel, *apierror.APIerror) {
+	user, err := s.GetUserByOauthID(ctx, body.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	if body.Name != nil {
+		user.Name = *body.Name
+	}
+
+	user, er := s.UserRepo.UpdateUser(ctx, *user)
+	if er != nil {
+		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, er)
+	}
+
+	return user, nil
 }

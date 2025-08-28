@@ -14,7 +14,7 @@ const (
 	SettingConversationTimeout SettingKey = "conversation_timeout"
 )
 
-var settingMap = map[SettingKey]string{
+var SettingMap = map[SettingKey]string{
 	SettingKeyPrompts:          "Default prompts for the chatbot",
 	SettingKeyBotName:          "Name of the chatbot",
 	SettingConversationTimeout: "Timeout for the conversation in minutes",

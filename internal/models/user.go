@@ -14,5 +14,6 @@ type UserModel struct {
 	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
 	DeletedAt time.Time     `bson:"deleted_at,omitempty" json:"deleted_at,omitempty" go.mongodb.org/mongo-driver/bson.D`
+	OauthID   string        `bson:"oauth_id,omitempty" json:"oauth_id"`
 	IsActive  bool          `bson:"is_active" json:"is_active"`
 }

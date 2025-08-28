@@ -19,12 +19,10 @@ type SettingRepoMongodb struct {
 func (r *SettingRepoMongodb) Create(ctx context.Context, data models.SettingModel) (*models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
-	// Set timestamps
 	now := time.Now()
 	data.CreatedAt = now
 	data.UpdatedAt = now
 
-	// Generate new ObjectID if not provided
 	if data.Id.IsZero() {
 		data.Id = bson.NewObjectID()
 	}
@@ -92,7 +90,7 @@ func (r *SettingRepoMongodb) GetByKey(ctx context.Context, key models.SettingKey
 func (r *SettingRepoMongodb) GetAllSettings(ctx context.Context) ([]models.SettingModel, error) {
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
-	filter := bson.M{"is_active": true}
+	filter := bson.M{}
 
 	var settings []models.SettingModel
 	cursor, err := collection.Find(ctx, filter)

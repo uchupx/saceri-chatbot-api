@@ -27,7 +27,7 @@ func (r *UserRepoMongodb) GetUser(ctx context.Context, id string) (*models.UserM
 	if err != nil {
 		return nil, err
 	}
-
+	//
 	filter := bson.M{
 		"_id":       objectID,
 		"is_active": true,
@@ -35,6 +35,26 @@ func (r *UserRepoMongodb) GetUser(ctx context.Context, id string) (*models.UserM
 
 	var user models.UserModel
 	err = collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // User not found
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepoMongodb) GetUserByOauthID(ctx context.Context, oauthID string) (*models.UserModel, error) {
+	collection := r.db.Database(databaseName).Collection(collectionName)
+
+	filter := bson.M{
+		"oauth_id":  oauthID,
+		"is_active": true,
+	}
+
+	var user models.UserModel
+	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // User not found
@@ -100,7 +120,6 @@ func (r *UserRepoMongodb) UpdateUser(ctx context.Context, user models.UserModel)
 
 	update := bson.M{
 		"$set": bson.M{
-			"username":   user.Username,
 			"name":       user.Name,
 			"updated_at": user.UpdatedAt,
 		},
@@ -158,10 +177,16 @@ func (r *UserRepoMongodb) DeleteUser(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *UserRepoMongodb) GetAllUsers(ctx context.Context, limit, offset int) ([]models.UserModel, error) {
+func (r *UserRepoMongodb) GetAllUsers(ctx context.Context, keyword *string, limit, offset int) ([]models.UserModel, error) {
 	collection := r.db.Database(databaseName).Collection(collectionName)
 
-	filter := bson.M{"is_active": true}
+	filter := bson.M{}
+	if keyword != nil && *keyword != "" {
+		filter["$or"] = []bson.M{
+			{"username": bson.M{"$regex": *keyword, "$options": "i"}},
+			{"name": bson.M{"$regex": *keyword, "$options": "i"}},
+		}
+	}
 
 	opts := options.Find()
 	if limit > 0 {
