@@ -38,12 +38,27 @@ func InitRouter(conf *config.Config, e *echo.Echo) {
 
 	userHandler := factory.GetUserHandler()
 	authHandler := factory.GetAuthHandler()
+	eventHandler := factory.GetEventHandler()
 
 	e.POST("auth/register", authHandler.Register)
 	e.OPTIONS("auth/register", optionsHandler)
 
 	e.POST("auth", authHandler.Login)
 	e.OPTIONS("auth", optionsHandler)
+
+	authRoute.POST("auth/logout", authHandler.Logout)
+	authRoute.OPTIONS("auth", optionsHandler)
+
+	authRoute.GET("events", eventHandler.GetEvents)
+	authRoute.OPTIONS("events", optionsHandler)
+
+	authRoute.GET("event/:id", eventHandler.GetEvent)
+	authRoute.PUT("event/:id", eventHandler.UpdateEvent)
+	authRoute.DELETE("event/:id", eventHandler.DeleteEvent)
+	authRoute.OPTIONS("event/:id", optionsHandler)
+
+	authRoute.POST("event", eventHandler.CreateEvent)
+	authRoute.OPTIONS("event", optionsHandler)
 
 	authRoute.GET("user", userHandler.GetUser)
 	authRoute.OPTIONS("user", optionsHandler)

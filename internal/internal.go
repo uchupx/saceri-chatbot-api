@@ -2,6 +2,8 @@
 package internal
 
 import (
+	"fmt"
+
 	"github.com/uchupx/saceri-chatbot-api/internal/api/handlers"
 	"github.com/uchupx/saceri-chatbot-api/internal/api/middlewares"
 	"github.com/uchupx/saceri-chatbot-api/internal/config"
@@ -18,6 +20,7 @@ type Factory struct {
 	userHandler    *handlers.UserHandler
 	authHandler    *handlers.AuthHandler
 	settingHandler *handlers.SettingHandler
+	eventHandler   *handlers.EventHandler
 	handler        *handlers.Handler
 
 	authService *client.AuthClient
@@ -29,6 +32,7 @@ type Factory struct {
 
 	userRepo    repository.UserRepoInterface
 	settingRepo repository.SettingRepoInterface
+	eventRepo   repository.EventRepoInterface
 
 	cacheRepo        *redis.CacheRepo
 	settingRepoCache repository.SettingRepoInterface
@@ -37,6 +41,8 @@ type Factory struct {
 
 	userService    *service.UserService
 	settingService *service.SettingService
+	eventService   *service.EventService
+	chatbotService *service.ChatbotService
 }
 
 func (f *Factory) GetUserHandler() *handlers.UserHandler {
@@ -181,7 +187,8 @@ func (f *Factory) GetSettingService() *service.SettingService {
 	}
 
 	settingService := &service.SettingService{
-		SettingRepo: f.GetSettingRepo(),
+		SettingRepo:    f.GetSettingCacheRepo(),
+		ChatbotService: f.GetChatbotService(),
 	}
 
 	f.settingService = settingService
@@ -227,7 +234,7 @@ func (f *Factory) GetCache() *database.Cache {
 	conf := config.GetConfig()
 
 	cache, err := database.GetConnection(database.RedisConfig{
-		Host:         conf.Redis.Host,
+		Host:         fmt.Sprintf("%s:%s", conf.Redis.Host, conf.Redis.Port),
 		Password:     conf.Redis.Password,
 		Database:     conf.Redis.Database,
 		PoolSize:     conf.Redis.PoolSize,
@@ -260,4 +267,63 @@ func (f *Factory) GetLog() *apilog.ApiLog {
 	f.log = log
 
 	return f.log
+}
+
+func (f *Factory) GetEventRepo() repository.EventRepoInterface {
+	if f.eventRepo != nil {
+		return f.eventRepo
+	}
+
+	db := f.GetDBConnection()
+	eventRepo := mongodb.NewEventRepoMongodb(db.Client)
+
+	f.eventRepo = eventRepo
+
+	return f.eventRepo
+}
+
+func (f *Factory) GetEventService() *service.EventService {
+	if f.eventService != nil {
+		return f.eventService
+	}
+
+	eventService := &service.EventService{
+		Repo:           f.GetEventRepo(),
+		ChatbotService: f.GetChatbotService(),
+	}
+
+	f.eventService = eventService
+
+	return f.eventService
+}
+
+func (f *Factory) GetEventHandler() *handlers.EventHandler {
+	if f.eventHandler != nil {
+		return f.eventHandler
+	}
+
+	eventHandler := &handlers.EventHandler{
+		Handler:      *f.Handler(),
+		EventService: f.GetEventService(),
+	}
+
+	f.eventHandler = eventHandler
+
+	return f.eventHandler
+}
+
+func (f *Factory) GetChatbotService() *service.ChatbotService {
+	if f.chatbotService != nil {
+		return f.chatbotService
+	}
+
+	chatbotService := &service.ChatbotService{
+		SettingRepo: f.GetSettingRepo(),
+		EventRepo:   f.GetEventRepo(),
+		Cache:       f.GetCache(),
+	}
+
+	f.chatbotService = chatbotService
+
+	return f.chatbotService
 }

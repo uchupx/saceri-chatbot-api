@@ -125,11 +125,6 @@ func (r *UserRepoMongodb) UpdateUser(ctx context.Context, user models.UserModel)
 		},
 	}
 
-	// Only update password if it's provided
-	if user.Password != "" {
-		update["$set"].(bson.M)["password"] = user.Password
-	}
-
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var updatedUser models.UserModel

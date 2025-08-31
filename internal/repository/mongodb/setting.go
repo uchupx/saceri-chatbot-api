@@ -42,8 +42,7 @@ func (r *SettingRepoMongodb) Update(ctx context.Context, data models.SettingMode
 	data.UpdatedAt = time.Now()
 
 	filter := bson.M{
-		"_id":       data.Id,
-		"is_active": true,
+		"_id": data.Id,
 	}
 
 	update := bson.M{
@@ -71,8 +70,7 @@ func (r *SettingRepoMongodb) GetByKey(ctx context.Context, key models.SettingKey
 	collection := r.db.Database(databaseName).Collection(r.collectionName)
 
 	filter := bson.M{
-		"key":       key,
-		"is_active": true,
+		"key": key,
 	}
 
 	var data models.SettingModel

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -12,12 +13,20 @@ const (
 	SettingKeyPrompts          SettingKey = "prompts"
 	SettingKeyBotName          SettingKey = "bot_name"
 	SettingConversationTimeout SettingKey = "conversation_timeout"
+	SettingKeyIntroduceMessage SettingKey = "introduce_message"
+
+	PrefixCacheKey string = "setting_chatbot"
 )
+
+func MakeSettingKey(key string) string {
+	return fmt.Sprintf("%s:%s", PrefixCacheKey, key)
+}
 
 var SettingMap = map[SettingKey]string{
 	SettingKeyPrompts:          "Default prompts for the chatbot",
 	SettingKeyBotName:          "Name of the chatbot",
 	SettingConversationTimeout: "Timeout for the conversation in minutes",
+	SettingKeyIntroduceMessage: "Introduce message",
 }
 
 type SettingModel struct {

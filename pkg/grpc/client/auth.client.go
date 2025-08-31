@@ -52,3 +52,12 @@ func (ac *AuthClient) Login(ctx context.Context, payload *authservice.LoginReque
 
 	return res, nil
 }
+
+func (ac *AuthClient) Logout(ctx context.Context, payload *authservice.LogoutRequest) (*authservice.LogoutResponse, error) {
+	res, err := ac.client.Logout(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

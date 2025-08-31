@@ -15,5 +15,6 @@ type EventModel struct {
 	UpdatedAt      *time.Time    `bson:"updated_at" json:"updated_at"`
 	DeletedAt      *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty" go.mongodb.org/mongo-driver/bson.D`
 	Description    string        `bson:"description" json:"description"`
+	Place          string        `bson:"place" json:"place"`
 	DonationTarget *uint         `bson:"donation_target" json:"donation_target"`
 }

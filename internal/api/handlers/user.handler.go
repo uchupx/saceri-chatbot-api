@@ -22,7 +22,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 func (h *UserHandler) GetUsers(c echo.Context) error {
 	ctx := h.log.CreateTrace(c.Request().Context())
 
-	query := _type.UserGetQuery{}
+	query := _type.GetQuery{}
 	if err := c.Bind(&query); err != nil {
 		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrBadRequest.Code, err))
 	}

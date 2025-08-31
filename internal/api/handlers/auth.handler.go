@@ -78,3 +78,20 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		Exp:   3600,
 	})
 }
+
+func (h *AuthHandler) Logout(c echo.Context) error {
+
+	token := c.Get("token").(string)
+	ctx := h.log.CreateTrace(c.Request().Context())
+
+	payload := authservice.LogoutRequest{
+		Token: token,
+	}
+
+	_, err := h.AuthClient.Logout(ctx, &payload)
+	if err != nil {
+		return h.responseError(c, ctx, apierror.NewAPIError(echo.ErrInternalServerError.Code, err))
+	}
+
+	return h.responseSuccess(c, 200, "success logout")
+}

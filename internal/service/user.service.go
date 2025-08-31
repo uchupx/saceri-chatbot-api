@@ -14,7 +14,7 @@ type UserService struct {
 	UserRepo repository.UserRepoInterface
 }
 
-func (s *UserService) GetUsers(ctx context.Context, params _type.UserGetQuery) ([]models.UserModel, *apierror.APIerror) {
+func (s *UserService) GetUsers(ctx context.Context, params _type.GetQuery) ([]models.UserModel, *apierror.APIerror) {
 	users, err := s.UserRepo.GetAllUsers(ctx, params.Keyword, params.Limit(), params.Offset())
 	if err != nil {
 		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
@@ -30,7 +30,7 @@ func (s *UserService) GetUserByOauthID(ctx context.Context, id string) (*models.
 	}
 
 	if user == nil {
-		return nil, apierror.NewAPIError(echo.ErrNotFound.Code, nil)
+		return nil, apierror.NewAPIError(echo.ErrNotFound.Code, apierror.ERR_NOT_FOUND)
 	}
 
 	return user, nil

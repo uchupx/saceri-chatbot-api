@@ -2,7 +2,7 @@ package _type
 
 import "github.com/uchupx/saceri-chatbot-api/pkg/helper"
 
-type UserGetQuery struct {
+type GetQuery struct {
 	Keyword *string `query:"keyword"`
 	Page    *int    `query:"page"`
 	PerPage *int    `query:"per_page"`
@@ -22,11 +22,11 @@ func (u UserUpdateRequest) ID() string {
 	return u.id
 }
 
-func (q UserGetQuery) Limit() int {
+func (q GetQuery) Limit() int {
 	return helper.DefaultInt(q.PerPage, 10)
 }
 
-func (q UserGetQuery) Offset() int {
+func (q GetQuery) Offset() int {
 	page := helper.DefaultInt(q.Page, 1)
 	return (page - 1) * q.Limit()
 }

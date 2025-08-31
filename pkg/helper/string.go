@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"math/rand"
 	"time"
 )
@@ -32,4 +33,26 @@ func GenerateRandomString(n int) string {
 	}
 
 	return string(b)
+}
+
+func StringPointer(v string) *string {
+	return &v
+}
+
+func StructToString(v interface{}) (*string, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+
+	return StringPointer(string(b)), nil
+}
+
+func StringToTime(s string) time.Time {
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return t
 }

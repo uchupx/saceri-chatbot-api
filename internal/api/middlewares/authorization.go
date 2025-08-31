@@ -1,4 +1,3 @@
-
 package middlewares
 
 import (
@@ -25,6 +24,8 @@ func (m *Middleware) Authorization(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 
 			c.Set("user", user)
+			c.Set("token", auth)
+
 			return next(c)
 		} else {
 			return echo.NewHTTPError(401, "Unauthorized")

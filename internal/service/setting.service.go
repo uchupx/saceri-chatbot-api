@@ -12,6 +12,8 @@ import (
 
 type SettingService struct {
 	SettingRepo repository.SettingRepoInterface
+
+	ChatbotService *ChatbotService
 }
 
 func (s *SettingService) Update(ctx context.Context, key models.SettingKey, value string) (*models.SettingModel, *apierror.APIerror) {
@@ -38,6 +40,17 @@ func (s *SettingService) Update(ctx context.Context, key models.SettingKey, valu
 	_, err = s.SettingRepo.Update(ctx, *setting)
 	if err != nil {
 		return nil, apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
+	}
+
+	if key == models.SettingKeyPrompts {
+		go func() {
+			ctx := context.Background()
+			err := s.ChatbotService.UpdatePromptContext(ctx)
+			if err != nil {
+				fmt.Printf("Error updating prompt context: %v\n", err.Error())
+				return
+			}
+		}()
 	}
 
 	return setting, nil
