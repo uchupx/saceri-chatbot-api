@@ -19,7 +19,7 @@ services:
   redis-saceri:
     image: redis:latest
     ports:
-      - "6379:6379" # Default Redis port
+      - "9030:6379" # Default Redis port
     networks:
       - saceri-net
     command: ["redis-server", "--bind", "0.0.0.0"]
