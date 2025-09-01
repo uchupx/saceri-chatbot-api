@@ -1,0 +1,56 @@
+version: '3.9'
+name: saceri-api
+
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "${HOST_API_PORT}:9093"
+    container_name: api
+    volumes:
+      - ${ENV_FILE}:/.env
+    depends_on:
+      - redis
+      - mongodb
+    networks:
+      - saceri-net
+      - worker-auth
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379" # Default Redis port
+    networks:
+      - saceri-net
+    command: ["redis-server", "--bind", "0.0.0.0"]
+
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    network_mode: host
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+
+
+
+networks:
+  saceri-net:
+    driver: bridge
+    name: saceri-net
+    external: true
+  worker-auth:
+    driver: bridge
+    name: worker-auth-net
+    external: true
+
+volumes:
+  mongodb_data:
