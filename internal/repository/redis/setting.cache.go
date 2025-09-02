@@ -70,7 +70,7 @@ func (repo *SettingCacheRepo) GetAllSettings(ctx context.Context) ([]models.Sett
 		repo.log.Error(ctx, "Failed to unmarshal cached setting", err, nil)
 	}
 
-	if setting == nil {
+	if len(*setting) == 0 {
 		s, err := repo.fallback.GetAllSettings(ctx)
 		if err != nil {
 			return nil, err
