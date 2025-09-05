@@ -61,7 +61,7 @@ Fokuskan jawaban Anda pada topik ini jika tidak sesuai topik makan hanya menjawa
 
 	context = fmt.Sprintf(context, prompt.Value, eventString)
 
-	err = s.Cache.Put(ctx, "prompts_context", context, time.Minute*5)
+	err = s.Cache.Put(ctx, "prompts_context", context, 0)
 	if err != nil {
 		return apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
 	}
@@ -70,5 +70,23 @@ Fokuskan jawaban Anda pada topik ini jika tidak sesuai topik makan hanya menjawa
 }
 
 func (s *ChatbotService) UpdateStaticToken(ctx context.Context) *apierror.APIerror {
+	return nil
+}
+
+func (s *ChatbotService) UpdateIntroduceMessage(ctx context.Context) *apierror.APIerror {
+	introduceMessage, err := s.SettingRepo.GetByKey(ctx, models.SettingKeyIntroduceMessage)
+	if err != nil {
+		return apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
+	}
+
+	if introduceMessage == nil {
+		return apierror.NewAPIError(echo.ErrNotFound.Code, fmt.Errorf("Introduce message setting not found"))
+	}
+
+	err = s.Cache.Put(ctx, "introduce_message", introduceMessage.Value, 0)
+	if err != nil {
+		return apierror.NewAPIError(echo.ErrInternalServerError.Code, err)
+	}
+
 	return nil
 }

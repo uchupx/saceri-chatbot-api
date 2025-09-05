@@ -53,6 +53,17 @@ func (s *SettingService) Update(ctx context.Context, key models.SettingKey, valu
 		}()
 	}
 
+	if key == models.SettingKeyIntroduceMessage {
+		go func() {
+			ctx := context.Background()
+			err := s.ChatbotService.UpdateIntroduceMessage(ctx)
+			if err != nil {
+				fmt.Printf("Error updating introduce message: %v\n", err.Error())
+				return
+			}
+		}()
+	}
+
 	return setting, nil
 }
 
